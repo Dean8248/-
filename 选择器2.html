@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AV企划室 - 剧本生成器</title>
+    <link
+      rel="stylesheet"
+      href="https://fontsapi.zeoseven.com/292/main/result.css"
+    />
+  </head>
+
+  <body>
+    <style>
+      /* 保持原有优秀的配色方案，适合成人/暗黑主题 */
+      :root {
+        --dark-red: #c92a2a;
+        --blood-red: #e03131;
+        --light-red: #ff6b6b;
+        --dark-gray: #1a1a1a;
+        --gray: #2a2a2a;
+        --light-gray: #3a3a3a;
+        --text-main: #e0e0e0;
+        --text-dim: #999;
+        --text-dimmer: #666;
+        --gold: #ffd700;
+        --silver: #c0c0c0;
+        --border: rgba(220, 20, 60, 0.2);
+        --hover-bg: rgba(220, 20, 60, 0.08);
+      }
+
+      [data-theme="light"] {
+        --dark-red: #c92a2a;
+        --blood-red: #e03131;
+        --light-red: #ff6b6b;
+        --dark-gray: #f5f5f5;
+        --gray: #ececec;
+        --light-gray: #e0e0e0;
+        --text-main: #2a2a2a;
+        --text-dim: #666;
+        --text-dimmer: #999;
+        --gold: #d97706;
+        --silver: #6b7280;
+        --border: rgba(220, 20, 60, 0.15);
+        --hover-bg: rgba(220, 20, 60, 0.05);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        color: var(--text-main);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background: var(--dark-gray); /* 确保背景色填充 */
+      }
+
+      .container {
+        width: 100%;
+        max-width: 820px;
+        margin: 0 auto;
+        background: var(--dark-gray);
+        font-size: 14px;
+        position: relative;
+        min-height: 100vh;
+        padding-bottom: 120px; /* 为底部固定栏留出空间 */
+      }
+
+      .header {
+        background: var(--blood-red);
+        padding: 10px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .header h1 {
+        font-size: 1em;
+        font-weight: 600;
+        color: #fff;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .theme-toggle {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: #fff;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 0.85em;
+        font-weight: 500;
+        outline: none;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .page {
+        display: none;
+        animation: fadeIn 0.5s ease-out;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .page-title {
+        font-size: 1.05em;
+        font-weight: 600;
+        color: var(--blood-red);
+        margin-bottom: 12px;
+        text-align: center;
+      }
+
+      .page-desc {
+        color: var(--text-dim);
+        text-align: center;
+        margin-bottom: 20px;
+        line-height: 1.5;
+        font-size: 0.9em;
+      }
+
+      .options-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .option-card {
+        background: var(--light-gray);
+        border: 2px solid transparent;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease-out;
+        position: relative;
+      }
+
+      .option-card:hover {
+        border-color: var(--blood-red);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 15px var(--hover-bg);
+      }
+
+      .option-card.selected {
+        background: linear-gradient(135deg, var(--blood-red), var(--dark-red));
+        border-color: var(--gold);
+        box-shadow: 0 0 20px rgba(220, 20, 60, 0.5);
+      }
+
+      .option-card .icon {
+        font-size: 2em;
+        margin-bottom: 8px;
+      }
+
+      .option-card .label {
+        font-size: 0.9em;
+        font-weight: 500;
+        color: var(--text-main);
+      }
+
+      .option-card.selected .label { color: #fff; }
+
+      .option-card .desc {
+        font-size: 0.75em;
+        color: var(--text-dim);
+        margin-top: 6px;
+        line-height: 1.3;
+      }
+
+      .option-card.selected .desc { color: rgba(255, 255, 255, 0.8); }
+
+      .custom-input {
+        width: 100%;
+        background: var(--dark-gray);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 8px;
+        color: var(--text-main);
+        font-size: 0.85em;
+        margin-top: 8px;
+      }
+
+      .custom-input:focus {
+        outline: none;
+        border-color: var(--blood-red);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 5px;
+        background: var(--light-gray);
+        border-radius: 3px;
+        margin-bottom: 20px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--blood-red), var(--light-red));
+        transition: width 0.5s ease-out;
+      }
+
+      .nav-buttons, .nav-buttons-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        padding: 12px 0;
+      }
+      
+      .nav-buttons-stacked {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 10px 25px;
+        border: none;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease-out;
+      }
+
+      .btn-prev { background: var(--light-gray); color: var(--text-main); }
+      .btn-next { background: linear-gradient(135deg, var(--blood-red), var(--dark-red)); color: #fff; }
+      .btn-submit { background: linear-gradient(135deg, var(--gold), #ff8c00); color: #000; font-weight: 600; }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+      .summary-section {
+        background: var(--light-gray);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 0.9em;
+      }
+
+      .summary-item:last-child { border-bottom: none; }
+      .summary-label { color: var(--text-dim); }
+      .summary-value { color: var(--gold); font-weight: 500; }
+
+      .bottom-info {
+        background: var(--gray);
+        border-top: 1px solid var(--border);
+        padding: 12px 16px;
+        font-size: 0.75em;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 90;
+        max-width: 820px;
+        margin: 0 auto;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 改为3列以容纳更多信息 */
+        gap: 6px;
+      }
+
+      .info-item {
+        display: flex;
+        flex-direction: column; /* 上下排列以节省横向空间 */
+        align-items: flex-start;
+      }
+
+      .info-label { color: var(--text-dimmer); font-size: 0.85em; }
+      .info-value { color: var(--gold); font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+      @media (max-width: 768px) {
+        .info-grid { grid-template-columns: repeat(3, 1fr); }
+      }
+      
+      /* 模态框样式 */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal-content {
+        background: var(--dark-gray);
+        border: 2px solid var(--blood-red);
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 320px;
+        width: 90%;
+        text-align: center;
+      }
+      .modal-title { font-size: 1.2em; color: var(--gold); margin-bottom: 15px; font-weight: bold; }
+      .modal-msg { margin-bottom: 20px; color: var(--text-main); }
+    </style>
+
+    <div class="container">
+      
+      <div class="modal-overlay" id="submitModal">
+        <div class="modal-content">
+          <div class="modal-title">📽️ 企划生成中</div>
+          <div class="modal-msg">导演，一切准备就绪。<br>演员已就位，机器已开机。<br><br>正在发送指令...</div>
+          <button class="btn btn-prev" onclick="document.getElementById('submitModal').classList.remove('active')">关闭</button>
+        </div>
+      </div>
+
+      <div class="header">
+        <div class="header-content">
+          <h1>AV企划室 - 剧本生成器</h1>
+          <button class="theme-toggle" onclick="toggleTheme()"><span id="theme-icon">🌙</span></button>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
+
+        <div class="page active" id="page0">
+          <div class="page-title">欢迎来到AV企划室</div>
+          <div class="page-desc">
+            这里是欲望的导演剪辑版<br />
+            请定制你的拍摄对象、关系与剧本走向<br />
+            <span style="color: var(--gold);">支持 11 个维度的深度定制</span>
+          </div>
+          <div class="nav-buttons-stacked">
+            <button class="btn btn-next" onclick="nextPage()">开始新的企划</button>
+            <button class="btn btn-submit" onclick="randomSelection()">一键随机生成</button>
+          </div>
+        </div>
+
+        <div class="page" id="page1">
+          <div class="page-title">1. 演员关系类型</div>
+          <div class="page-desc">片中男女主角的基础社会关系</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('relationshipType', '情侣', this)">
+              <div class="icon">💑</div><div class="label">情侣</div><div class="desc">热恋或同居的年轻男女</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationshipType', '夫妻', this)">
+              <div class="icon">💍</div><div class="label">夫妻</div><div class="desc">合法的婚姻伴侣关系</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationshipType', '暧昧', this)">
+              <div class="icon">💓</div><div class="label">暧昧</div><div class="desc">友达以上，恋人未满</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationshipType', '母子', this)">
+              <div class="icon">👩‍👦</div><div class="label">母子</div><div class="desc">禁忌的血缘/继亲背德感</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationshipType', '姐弟', this)">
+              <div class="icon">👠</div><div class="label">姐弟</div><div class="desc">年上御姐与年下弟弟</div>
+            </div>
+             <div class="option-card" onclick="selectOption('relationshipType', '兄妹', this)">
+              <div class="icon">🎀</div><div class="label">兄妹</div><div class="desc">年上哥哥与年下妹妹</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationshipType', '父女', this)">
+              <div class="icon">👨‍👧</div><div class="label">父女</div><div class="desc">威严父亲与乖巧女儿</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('relationshipType', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入关系" onclick="event.stopPropagation()" data-category="relationshipType"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn1" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page2">
+          <div class="page-title">2. 女优身材</div>
+          <div class="page-desc">视觉上的第一冲击力</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('body', '丰满御姐', this)">
+              <div class="icon">💃</div><div class="label">丰满御姐</div><div class="desc">前凸后翘，肉感十足</div>
+            </div>
+            <div class="option-card" onclick="selectOption('body', '纤细少妇', this)">
+              <div class="icon">🧘‍♀️</div><div class="label">纤细少妇</div><div class="desc">苗条紧致，不堪一折</div>
+            </div>
+            <div class="option-card" onclick="selectOption('body', '微胖人妻', this)">
+              <div class="icon">🍑</div><div class="label">微胖人妻</div><div class="desc">软绵丰腴，手感极佳</div>
+            </div>
+            <div class="option-card" onclick="selectOption('body', '健美辣妈', this)">
+              <div class="icon">💪</div><div class="label">健美辣妈</div><div class="desc">核心有力，线条清晰</div>
+            </div>
+            <div class="option-card" onclick="selectOption('body', '娇小玲珑', this)">
+              <div class="icon">🐹</div><div class="label">娇小玲珑</div><div class="desc">便于搬运，体型差美学</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('body', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入身材" onclick="event.stopPropagation()" data-category="body"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn2" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page3">
+          <div class="page-title">3. 角色性格</div>
+          <div class="page-desc">她在镜头前的表现风格</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('personality', '温柔贤惠', this)">
+              <div class="icon">😊</div><div class="label">温柔贤惠</div><div class="desc">百依百顺，含羞配合</div>
+            </div>
+            <div class="option-card" onclick="selectOption('personality', '高冷傲娇', this)">
+              <div class="icon">😏</div><div class="label">高冷傲娇</div><div class="desc">嘴上嫌弃，身体诚实</div>
+            </div>
+            <div class="option-card" onclick="selectOption('personality', '风骚浪荡', this)">
+              <div class="icon">🥵</div><div class="label">风骚浪荡</div><div class="desc">极度饥渴，主动求欢</div>
+            </div>
+            <div class="option-card" onclick="selectOption('personality', '清纯保守', this)">
+              <div class="icon">😳</div><div class="label">清纯保守</div><div class="desc">放不开，容易害羞脸红</div>
+            </div>
+            <div class="option-card" onclick="selectOption('personality', '知性优雅', this)">
+              <div class="icon">👓</div><div class="label">知性优雅</div><div class="desc">谈吐得体，反差感强</div>
+            </div>
+            <div class="option-card" onclick="selectOption('personality', '独立强势', this)">
+              <div class="icon">👑</div><div class="label">独立强势</div><div class="desc">女王气场，喜欢掌控</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('personality', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入性格" onclick="event.stopPropagation()" data-category="personality"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn3" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page4">
+          <div class="page-title">4. 角色年龄</div>
+          <div class="page-desc">剧本设定中的年龄段</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('age', '18-24岁', this)">
+              <div class="icon">🌸</div><div class="label">18-24岁</div><div class="desc">青涩学生或职场新人</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '25-30岁', this)">
+              <div class="icon">🌹</div><div class="label">25-30岁</div><div class="desc">轻熟适婚，最有活力</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '30-35岁', this)">
+              <div class="icon">💋</div><div class="label">30-35岁</div><div class="desc">成熟韵味，如狼似虎</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '35-45岁', this)">
+              <div class="icon">🍷</div><div class="label">35-45岁</div><div class="desc">风韵犹存，技术娴熟</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '45岁以上', this)">
+              <div class="icon">🧙‍♀️</div><div class="label">45岁以上</div><div class="desc">美魔女，母性光辉</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('age', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入年龄" onclick="event.stopPropagation()" data-category="age"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn4" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page5">
+          <div class="page-title">5. 当前关系状态</div>
+          <div class="page-desc">决定影片的情感基调</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('relationStatus', '恩爱', this)">
+              <div class="icon">🥰</div><div class="label">恩爱</div><div class="desc">如胶似漆，充满爱意</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationStatus', '和谐', this)">
+              <div class="icon">🤝</div><div class="label">和谐</div><div class="desc">相敬如宾，平淡日常</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationStatus', '紧张', this)">
+              <div class="icon">😐</div><div class="label">紧张</div><div class="desc">冷战边缘，气氛压抑</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationStatus', '吵架', this)">
+              <div class="icon">💢</div><div class="label">吵架</div><div class="desc">激烈冲突，带着怒气做爱</div>
+            </div>
+            <div class="option-card" onclick="selectOption('relationStatus', '疏远', this)">
+              <div class="icon">❄️</div><div class="label">疏远</div><div class="desc">无性婚姻，形同陌路</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('relationStatus', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入状态" onclick="event.stopPropagation()" data-category="relationStatus"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn5" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page6">
+          <div class="page-title">6. 角色职业</div>
+          <div class="page-desc">制服与社会身份设定</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('career', '白领OL', this)">
+              <div class="icon">💼</div><div class="label">白领OL</div><div class="desc">办公室恋情，正装诱惑</div>
+            </div>
+            <div class="option-card" onclick="selectOption('career', '家庭主妇', this)">
+              <div class="icon">🏡</div><div class="label">家庭主妇</div><div class="desc">围裙，家务，不知世事</div>
+            </div>
+            <div class="option-card" onclick="selectOption('career', '教师', this)">
+              <div class="icon">👩‍🏫</div><div class="label">教师</div><div class="desc">讲台上下，反差极大</div>
+            </div>
+            <div class="option-card" onclick="selectOption('career', '医护人员', this)">
+              <div class="icon">💉</div><div class="label">医护人员</div><div class="desc">护士装，检查身体</div>
+            </div>
+            <div class="option-card" onclick="selectOption('career', '学生', this)">
+              <div class="icon">🎒</div><div class="label">学生</div><div class="desc">清纯校服，兼职打工</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('career', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入职业" onclick="event.stopPropagation()" data-category="career"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn6" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page7">
+          <div class="page-title">7. 生活/拍摄状态</div>
+          <div class="page-desc">为何会发生性行为或拍摄</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('lifeStatus', '主动献出', this)">
+              <div class="icon">🎁</div><div class="label">主动献出</div><div class="desc">为了取悦对方，主动配合</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifeStatus', '共同探索', this)">
+              <div class="icon">🔭</div><div class="label">共同探索</div><div class="desc">双方达成一致，追求刺激</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifeStatus', '被迫还债', this)">
+              <div class="icon">💸</div><div class="label">被迫还债</div><div class="desc">经济危机，用身体偿还</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifeStatus', '女方不知情', this)">
+              <div class="icon">🙈</div><div class="label">女方不知情</div><div class="desc">假试镜/整蛊/被下药</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifeStatus', '男方不知情', this)">
+              <div class="icon">🧢</div><div class="label">男方不知情</div><div class="desc">背着男方拍摄/NTR现场</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifeStatus', '都不知情', this)">
+              <div class="icon">🎭</div><div class="label">都不知情</div><div class="desc">双盲测试，意外遭遇</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('lifeStatus', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入状态" onclick="event.stopPropagation()" data-category="lifeStatus"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn7" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page8">
+          <div class="page-title">8. 过往性经历</div>
+          <div class="page-desc">她的开发程度</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('pastExperience', '处女/清纯', this)">
+              <div class="icon">🦄</div><div class="label">处女/清纯</div><div class="desc">毫无经验，反应青涩</div>
+            </div>
+            <div class="option-card" onclick="selectOption('pastExperience', '经验普通', this)">
+              <div class="icon">🙂</div><div class="label">经验普通</div><div class="desc">有过几任伴侣，中规中矩</div>
+            </div>
+            <div class="option-card" onclick="selectOption('pastExperience', '身经百战', this)">
+              <div class="icon">⚔️</div><div class="label">身经百战</div><div class="desc">阅人无数，深谙此道</div>
+            </div>
+            <div class="option-card" onclick="selectOption('pastExperience', '曾被调教', this)">
+              <div class="icon">⛓️</div><div class="label">曾被调教</div><div class="desc">身体已被开发，有特殊反应</div>
+            </div>
+            <div class="option-card" onclick="selectOption('pastExperience', '出轨惯犯', this)">
+              <div class="icon">💔</div><div class="label">出轨惯犯</div><div class="desc">习惯性背叛，追求新鲜感</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('pastExperience', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入经历" onclick="event.stopPropagation()" data-category="pastExperience"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn8" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page9">
+          <div class="page-title">9. 男伴功能设定</div>
+          <div class="page-desc">男方在剧本中的状态与作用</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('maleSetting', 'ED无能', this)">
+              <div class="icon">🥀</div><div class="label">ED无能</div><div class="desc">性无能，只能旁观或辅助</div>
+            </div>
+            <div class="option-card" onclick="selectOption('maleSetting', '绿帽癖', this)">
+              <div class="icon">🐢</div><div class="label">绿帽癖</div><div class="desc">享受妻子被别人睡的快感</div>
+            </div>
+            <div class="option-card" onclick="selectOption('maleSetting', '报复女伴', this)">
+              <div class="icon">👿</div><div class="label">报复女伴</div><div class="desc">故意安排人轮奸以惩罚她</div>
+            </div>
+            <div class="option-card" onclick="selectOption('maleSetting', '普通参与', this)">
+              <div class="icon">😐</div><div class="label">普通参与</div><div class="desc">正常的性伴侣角色</div>
+            </div>
+            <div class="option-card" onclick="selectOption('maleSetting', '被动接受', this)">
+              <div class="icon">🤕</div><div class="label">被动接受</div><div class="desc">被女方强势压榨/逆推</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('maleSetting', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入设定" onclick="event.stopPropagation()" data-category="maleSetting"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn9" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page10">
+          <div class="page-title">10. 她的性癖</div>
+          <div class="page-desc">她在床上的特殊喜好</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('herKink', 'M属性/受虐', this)">
+              <div class="icon">⛓️</div><div class="label">M属性/受虐</div><div class="desc">喜欢被打屁股、羞辱</div>
+            </div>
+            <div class="option-card" onclick="selectOption('herKink', 'S属性/支配', this)">
+              <div class="icon">👠</div><div class="label">S属性/支配</div><div class="desc">喜欢骑乘、踩踏、命令</div>
+            </div>
+            <div class="option-card" onclick="selectOption('herKink', '痴女/露底', this)">
+              <div class="icon">🫣</div><div class="label">痴女/露底</div><div class="desc">喜欢暴露，如果不穿内裤</div>
+            </div>
+            <div class="option-card" onclick="selectOption('herKink', '后庭/两穴', this)">
+              <div class="icon">🍩</div><div class="label">后庭/两穴</div><div class="desc">开发后门，双管齐下</div>
+            </div>
+             <div class="option-card" onclick="selectOption('herKink', '吞精/口活', this)">
+              <div class="icon">💦</div><div class="label">吞精/口活</div><div class="desc">极度迷恋精液的味道</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('herKink', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入性癖" onclick="event.stopPropagation()" data-category="herKink"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn10" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page11">
+          <div class="page-title">11. 企划玩法类型</div>
+          <div class="page-desc">本次拍摄的核心主题</div>
+          <div class="options-grid">
+            <div class="option-card" onclick="selectOption('projectType', '色情按摩', this)">
+              <div class="icon">🧴</div><div class="label">色情按摩</div><div class="desc">精油推拿，逐渐越界</div>
+            </div>
+            <div class="option-card" onclick="selectOption('projectType', '纪念照', this)">
+              <div class="icon">📸</div><div class="label">纪念照</div><div class="desc">私房拍摄，越拍越露</div>
+            </div>
+            <div class="option-card" onclick="selectOption('projectType', '魔镜号', this)">
+              <div class="icon">🚐</div><div class="label">魔镜号</div><div class="desc">街头透明车厢，路人视角</div>
+            </div>
+            <div class="option-card" onclick="selectOption('projectType', '木头人', this)">
+              <div class="icon">🛑</div><div class="label">木头人</div><div class="desc">时间停止/被控制无法动弹</div>
+            </div>
+            <div class="option-card" onclick="selectOption('projectType', '私密问答', this)">
+              <div class="icon">🎤</div><div class="label">私密问答</div><div class="desc">真心话大冒险，输了脱衣</div>
+            </div>
+            <div class="option-card" onclick="selectOption('projectType', '蒙眼猜人', this)">
+              <div class="icon">🫣</div><div class="label">蒙眼猜人</div><div class="desc">不知道插入的是谁</div>
+            </div>
+            <div class="option-card" onclick="selectOption('projectType', '忍耐挑战', this)">
+              <div class="icon">⏱️</div><div class="label">忍耐挑战</div><div class="desc">忍住不准高潮/不准出声</div>
+            </div>
+            <div class="option-card" onclick="selectCustomOption('projectType', this)">
+              <div class="icon">✏️</div><div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="输入玩法" onclick="event.stopPropagation()" data-category="projectType"/>
+            </div>
+          </div>
+          <div class="nav-buttons"><button class="btn btn-prev" onclick="prevPage()">上一步</button><button class="btn btn-next" id="nextBtn11" onclick="nextPage()" disabled>下一步</button></div>
+        </div>
+
+        <div class="page" id="page12">
+          <div class="page-title">企划确认书</div>
+          <div class="page-desc">请确认以下剧本设定</div>
+          <div class="summary-section">
+            <div class="summary-item"><span class="summary-label">1.关系类型</span><span class="summary-value" id="sum_relationshipType">-</span></div>
+            <div class="summary-item"><span class="summary-label">2.女优身材</span><span class="summary-value" id="sum_body">-</span></div>
+            <div class="summary-item"><span class="summary-label">3.角色性格</span><span class="summary-value" id="sum_personality">-</span></div>
+            <div class="summary-item"><span class="summary-label">4.角色年龄</span><span class="summary-value" id="sum_age">-</span></div>
+            <div class="summary-item"><span class="summary-label">5.关系状态</span><span class="summary-value" id="sum_relationStatus">-</span></div>
+            <div class="summary-item"><span class="summary-label">6.职业身份</span><span class="summary-value" id="sum_career">-</span></div>
+            <div class="summary-item"><span class="summary-label">7.生活/拍摄</span><span class="summary-value" id="sum_lifeStatus">-</span></div>
+            <div class="summary-item"><span class="summary-label">8.过往经历</span><span class="summary-value" id="sum_pastExperience">-</span></div>
+            <div class="summary-item"><span class="summary-label">9.男伴设定</span><span class="summary-value" id="sum_maleSetting">-</span></div>
+            <div class="summary-item"><span class="summary-label">10.她的性癖</span><span class="summary-value" id="sum_herKink">-</span></div>
+            <div class="summary-item"><span class="summary-label">11.企划玩法</span><span class="summary-value" id="sum_projectType">-</span></div>
+          </div>
+          <div class="nav-buttons-stacked">
+            <div class="nav-buttons-row">
+                <button class="btn btn-prev" onclick="prevPage()">返回修改</button>
+                <button class="btn btn-submit" onclick="submitSelection()">开始拍摄 (Send)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-info">
+        <div class="info-grid">
+          <div class="info-item"><span class="info-label">关系</span><span class="info-value" id="info_relationshipType">-</span></div>
+          <div class="info-item"><span class="info-label">身材</span><span class="info-value" id="info_body">-</span></div>
+          <div class="info-item"><span class="info-label">性格</span><span class="info-value" id="info_personality">-</span></div>
+          <div class="info-item"><span class="info-label">年龄</span><span class="info-value" id="info_age">-</span></div>
+          <div class="info-item"><span class="info-label">状态</span><span class="info-value" id="info_relationStatus">-</span></div>
+          <div class="info-item"><span class="info-label">职业</span><span class="info-value" id="info_career">-</span></div>
+          <div class="info-item"><span class="info-label">动机</span><span class="info-value" id="info_lifeStatus">-</span></div>
+          <div class="info-item"><span class="info-label">经历</span><span class="info-value" id="info_pastExperience">-</span></div>
+          <div class="info-item"><span class="info-label">男伴</span><span class="info-value" id="info_maleSetting">-</span></div>
+          <div class="info-item"><span class="info-label">性癖</span><span class="info-value" id="info_herKink">-</span></div>
+          <div class="info-item"><span class="info-label">玩法</span><span class="info-value" id="info_projectType">-</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      let currentPage = 0;
+      const totalPages = 13;
+      
+      // 数据结构 - 11个维度
+      const selections = {
+        relationshipType: "",
+        body: "",
+        personality: "",
+        age: "",
+        relationStatus: "",
+        career: "",
+        lifeStatus: "",
+        pastExperience: "",
+        maleSetting: "",
+        herKink: "",
+        projectType: ""
+      };
+
+      // 映射表：用于UI更新
+      const keys = Object.keys(selections);
+
+      function updateUI() {
+        // 更新进度条
+        const progress = (currentPage / (totalPages - 1)) * 100;
+        document.getElementById("progressBar").style.width = progress + "%";
+        
+        // 更新底部栏
+        keys.forEach(key => {
+            const el = document.getElementById("info_" + key);
+            if(el) el.textContent = selections[key] || "-";
+            
+            const sumEl = document.getElementById("sum_" + key);
+            if(sumEl) sumEl.textContent = selections[key] || "-";
+        });
+      }
+
+      function showPage(pageNum) {
+        document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+        document.getElementById("page" + pageNum).classList.add("active");
+        currentPage = pageNum;
+        updateUI();
+        window.scrollTo(0, 0);
+      }
+
+      function nextPage() { if (currentPage < totalPages - 1) showPage(currentPage + 1); }
+      function prevPage() { if (currentPage > 0) showPage(currentPage - 1); }
+
+      // 通用选择函数
+      function selectOption(category, value, element) {
+        // 移除该组其他选中状态
+        element.parentElement.querySelectorAll(".option-card").forEach(c => c.classList.remove("selected"));
+        element.classList.add("selected");
+        
+        // 保存数据
+        selections[category] = value;
+        updateUI();
+        
+        // 激活下一步按钮
+        const btnId = "nextBtn" + currentPage;
+        const btn = document.getElementById(btnId);
+        if (btn) btn.disabled = false;
+        
+        // 自动跳转体验优化（可选，这里设为稍微延迟）
+        // setTimeout(nextPage, 300);
+      }
+
+      // 自定义输入函数
+      function selectCustomOption(category, element) {
+        element.parentElement.querySelectorAll(".option-card").forEach(c => c.classList.remove("selected"));
+        element.classList.add("selected");
+        const input = element.querySelector(".custom-input");
+        input.focus();
+        
+        const btnId = "nextBtn" + currentPage;
+        const btn = document.getElementById(btnId);
+        
+        input.oninput = function() {
+            if(this.value.trim()) {
+                selections[category] = this.value.trim();
+                if(btn) btn.disabled = false;
+            } else {
+                if(btn) btn.disabled = true;
+            }
+            updateUI();
+        };
+        
+        // 回车确认
+        input.onkeydown = function(e) {
+            if(e.key === 'Enter' && this.value.trim()) nextPage();
+        }
+      }
+
+      // 一键随机逻辑
+      function randomSelection() {
+        const pools = {
+          relationshipType: ["情侣", "夫妻", "母子", "姐弟", "父女", "暧昧"],
+          body: ["丰满御姐", "纤细少妇", "微胖人妻", "健美辣妈", "娇小玲珑"],
+          personality: ["温柔贤惠", "高冷傲娇", "风骚浪荡", "清纯保守", "知性优雅", "独立强势"],
+          age: ["18-24岁", "25-30岁", "30-35岁", "35-45岁", "45岁以上"],
+          relationStatus: ["恩爱", "和谐", "紧张", "吵架", "疏远"],
+          career: ["白领OL", "家庭主妇", "教师", "医护人员", "学生"],
+          lifeStatus: ["主动献出", "共同探索", "被迫还债", "女方不知情", "男方不知情", "都不知情"],
+          pastExperience: ["处女/清纯", "经验普通", "身经百战", "曾被调教", "出轨惯犯"],
+          maleSetting: ["ED无能", "绿帽癖", "报复女伴", "普通参与", "被动接受"],
+          herKink: ["M属性/受虐", "S属性/支配", "痴女/露底", "后庭/两穴", "吞精/口活"],
+          projectType: ["色情按摩", "纪念照", "魔镜号", "木头人", "私密问答", "蒙眼猜人", "忍耐挑战"]
+        };
+
+        keys.forEach(key => {
+            const arr = pools[key];
+            selections[key] = arr[Math.floor(Math.random() * arr.length)];
+        });
+
+        // 刷新UI并跳转到确认页
+        document.querySelectorAll(".page").forEach(p => {
+            p.querySelectorAll(".option-card").forEach(c => c.classList.remove("selected"));
+        });
+        updateUI();
+        showPage(12);
+      }
+
+      // 提交发送
+      function submitSelection() {
+        // 构建提示词
+        const prompt = `【AV企划生成】
+1. 关系类型：${selections.relationshipType}
+2. 女优身材：${selections.body}
+3. 角色性格：${selections.personality}
+4. 角色年龄：${selections.age}
+5. 关系状态：${selections.relationStatus}
+6. 职业身份：${selections.career}
+7. 拍摄动机：${selections.lifeStatus}
+8. 过往经历：${selections.pastExperience}
+9. 男伴设定：${selections.maleSetting}
+10. 她的性癖：${selections.herKink}
+11. 企划玩法：${selections.projectType}
+
+请作为AV导演，根据以上设定编写一段具体的AV开场剧情，重点描写这种${selections.relationStatus}的${selections.relationshipType}在进行${selections.projectType}时的互动细节和心理活动。`;
+
+        // 模拟模态框
+        document.getElementById('submitModal').classList.add('active');
+
+        // 发送指令 (适配酒馆/SillyTavern)
+        const command = `/send ${prompt}`;
+        console.log("Sending:", command);
+        
+        if (typeof triggerSlash === "function") {
+            triggerSlash(command);
+        } else {
+            // 如果不在酒馆环境，复制到剪贴板
+            navigator.clipboard.writeText(prompt).then(() => {
+                const msg = document.querySelector('.modal-msg');
+                msg.innerHTML += "<br><span style='color:#ffd700'>（未检测到API，提示词已复制到剪贴板）</span>";
+            });
+        }
+      }
+
+      function toggleTheme() {
+        const body = document.body;
+        const icon = document.getElementById("theme-icon");
+        if (body.getAttribute("data-theme") === "light") {
+          body.removeAttribute("data-theme");
+          icon.textContent = "🌙";
+        } else {
+          body.setAttribute("data-theme", "light");
+          icon.textContent = "☀️";
+        }
+      }
+
+      // 初始化
+      updateUI();
+    </script>
+  </body>
+</html>
