@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>START</title>
+    <link
+      rel="stylesheet"
+      href="https://fontsapi.zeoseven.com/292/main/result.css"
+    />
+  </head>
+
+  <body>
+    <style>
+      /* === 核心配色 === */
+      :root {
+        --dark-red: #c92a2a;
+        --blood-red: #e03131;
+        --light-red: #ff6b6b;
+        --dark-gray: #1a1a1a;
+        --gray: #2a2a2a;
+        --light-gray: #3a3a3a;
+        --text-main: #e0e0e0;
+        --text-dim: #999;
+        --text-dimmer: #666;
+        --gold: #ffd700;
+        --silver: #c0c0c0;
+        --border: rgba(220, 20, 60, 0.2);
+        --hover-bg: rgba(220, 20, 60, 0.08);
+      }
+
+      [data-theme="light"] {
+        --dark-red: #c92a2a;
+        --blood-red: #e03131;
+        --light-red: #ff6b6b;
+        --dark-gray: #f5f5f5;
+        --gray: #ececec;
+        --light-gray: #e0e0e0;
+        --text-main: #2a2a2a;
+        --text-dim: #666;
+        --text-dimmer: #999;
+        --gold: #d97706;
+        --silver: #6b7280;
+        --border: rgba(220, 20, 60, 0.15);
+        --hover-bg: rgba(220, 20, 60, 0.05);
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+      body {
+        font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text-main);
+        line-height: 1.6;
+        background: var(--dark-gray);
+      }
+
+      .container {
+        width: 100%;
+        max-width: 850px;
+        margin: 0 auto;
+        background: var(--dark-gray);
+        font-size: 14px;
+        position: relative;
+        min-height: 100vh;
+        padding-bottom: 80px;
+      }
+
+      /* Header */
+      .header {
+        background: var(--blood-red);
+        padding: 10px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header h1 { font-size: 1.1em; font-weight: 700; color: #fff; }
+      
+      .theme-toggle {
+        background: rgba(255, 255, 255, 0.2);
+        border: none; color: #fff; padding: 6px 12px;
+        border-radius: 4px; cursor: pointer; transition: background 0.2s;
+      }
+
+      /* Content */
+      .content { padding: 12px; }
+      .page { display: none; animation: fadeIn 0.4s ease-out; }
+      .page.active { display: block; }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+      .page-title { font-size: 1.2em; font-weight: bold; color: var(--blood-red); margin-bottom: 12px; text-align: center; }
+      .page-desc { color: var(--text-dim); text-align: center; margin-bottom: 20px; font-size: 0.95em; }
+
+      /* Grid Options - 5列布局 */
+      .options-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .option-card {
+        background: var(--light-gray);
+        border: 2px solid transparent;
+        border-radius: 6px;
+        padding: 8px 4px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease-out;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 85px;
+      }
+
+      .option-card:hover { border-color: var(--blood-red); transform: translateY(-2px); }
+      .option-card.selected {
+        background: linear-gradient(135deg, var(--blood-red), var(--dark-red));
+        border-color: var(--gold);
+        box-shadow: 0 0 10px rgba(220, 20, 60, 0.4);
+      }
+
+      .option-card .icon { font-size: 1.6em; margin-bottom: 4px; }
+      .option-card .label { 
+        font-size: 0.8em; 
+        font-weight: 600; 
+        color: var(--text-main); 
+        line-height: 1.2; 
+        word-break: break-all; 
+      }
+      .option-card.selected .label { color: #fff; }
+
+      .custom-input {
+        width: 100%; background: rgba(0,0,0,0.3);
+        border: 1px solid var(--border); border-radius: 4px;
+        padding: 4px; color: #fff; font-size: 0.75em;
+        margin-top: 4px; text-align: center;
+      }
+      .custom-input:focus { border-color: var(--gold); outline: none; background: rgba(0,0,0,0.5); }
+      .option-card.selected .custom-input { border-color: var(--gold); background: rgba(0,0,0,0.2); }
+
+      /* Sliders */
+      .slider-section { margin-bottom: 20px; background: var(--light-gray); padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+      .slider-group-title { color: var(--gold); font-size: 0.9em; font-weight: bold; margin-bottom: 12px; border-bottom: 1px solid var(--gray); padding-bottom: 6px; }
+      
+      .slider-row { display: flex; align-items: center; margin-bottom: 10px; gap: 8px; }
+      .slider-label { width: 55px; font-size: 0.8em; color: var(--text-main); text-align: right; white-space: nowrap; }
+      .slider-container { flex: 1; position: relative; display: flex; align-items: center; }
+      
+      input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; }
+      input[type=range]::-webkit-slider-thumb {
+        -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%;
+        background: var(--gold); cursor: pointer; margin-top: -5px;
+      }
+      input[type=range]::-webkit-slider-runnable-track {
+        width: 100%; height: 4px; cursor: pointer;
+        background: var(--gray); border-radius: 2px;
+      }
+      .slider-val { width: 35px; text-align: right; font-size: 0.8em; color: var(--gold); font-family: monospace; }
+
+      /* Progress */
+      .progress-bar { width: 100%; height: 4px; background: var(--light-gray); border-radius: 2px; margin-bottom: 15px; overflow: hidden; }
+      .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blood-red), var(--light-red)); transition: width 0.3s; }
+
+      /* Buttons */
+      .nav-buttons { display: flex; gap: 10px; justify-content: center; padding: 15px 0; }
+      .btn {
+        padding: 8px 25px; border: none; border-radius: 50px;
+        font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9em;
+      }
+      .btn-prev { background: var(--light-gray); color: var(--text-main); }
+      .btn-next { background: linear-gradient(135deg, var(--blood-red), var(--dark-red)); color: #fff; }
+      .btn-submit { background: linear-gradient(135deg, var(--gold), #ff8c00); color: #000; }
+      .btn:disabled { opacity: 0.5; cursor: not-allowed; background: var(--gray); }
+
+      /* Info Bar */
+      .bottom-info {
+        background: var(--gray); border-top: 1px solid var(--border);
+        padding: 8px 12px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 90;
+        font-size: 0.75em;
+      }
+      .info-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px 8px; max-width: 850px; margin: 0 auto; }
+      .info-item { display: flex; flex-direction: column; overflow: hidden; text-align: center; }
+      .info-label { color: var(--text-dimmer); font-size: 0.85em; margin-bottom: 2px; }
+      .info-value { color: var(--gold); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      /* Modals */
+      .modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal-content {
+        background: var(--dark-gray); border: 2px solid var(--blood-red);
+        border-radius: 12px; padding: 25px; max-width: 380px; width: 90%; text-align: center;
+        box-shadow: 0 8px 32px rgba(220, 20, 60, 0.2);
+      }
+      .modal-title { font-size: 1.2em; font-weight: 700; color: var(--blood-red); margin-bottom: 15px; }
+      .modal-btn-confirm { background: var(--blood-red); color: #fff; width: 100%; border:none; padding:10px; border-radius:8px; cursor:pointer;}
+
+      @media (max-width: 480px) {
+        .info-grid { grid-template-columns: repeat(4, 1fr); }
+      }
+    </style>
+
+    <div class="container">
+      
+      <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content">
+          <div class="modal-title">🎲 指令生成完毕</div>
+          <div class="modal-message" style="margin-bottom:20px; color:var(--text-main);">
+            场景数据已封装。<br>
+            <span style="color:var(--text-dim); font-size:0.85em;">(包含10项设定与深层数值)</span>
+          </div>
+          <button class="modal-btn modal-btn-confirm" onclick="closeInfoModal()">发送指令</button>
+        </div>
+      </div>
+
+      <div class="header">
+        <div class="header-content">
+          <h1>START</h1>
+          <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+
+        <div id="pages-container"></div>
+
+        <div class="page" id="page10">
+          <div class="page-title">⚙️ 数值调律</div>
+          <div class="page-desc">深层属性调整 (0-100%)</div>
+          
+          <div class="slider-section">
+            <div class="slider-group-title">1. {{优}}·肉体开发度</div>
+            <div id="sliders-dev"></div>
+          </div>
+
+          <div class="slider-section">
+            <div class="slider-group-title">2. {{优}}·欲望指向</div>
+            <div id="sliders-lust"></div>
+          </div>
+
+          <div class="slider-section">
+            <div class="slider-group-title">3. {{优}}·心理防线</div>
+            <div class="slider-row">
+              <span class="slider-label">堕落值</span>
+              <div class="slider-container"><input type="range" id="slider_corruption" min="0" max="100" value="0" oninput="updateVal(this)"></div>
+              <span class="slider-val" id="val_slider_corruption">0%</span>
+            </div>
+          </div>
+
+          <div class="slider-section">
+            <div class="slider-group-title">4. {{秀}}·苦主参数</div>
+             <div class="slider-row">
+              <span class="slider-label">绿帽值</span>
+              <div class="slider-container"><input type="range" id="slider_cuckold" min="0" max="100" value="0" oninput="updateVal(this)"></div>
+              <span class="slider-val" id="val_slider_cuckold">0%</span>
+            </div>
+            <div class="slider-row">
+              <span class="slider-label">淫妻欲</span>
+              <div class="slider-container"><input type="range" id="slider_share" min="0" max="100" value="0" oninput="updateVal(this)"></div>
+              <span class="slider-val" id="val_slider_share">0%</span>
+            </div>
+          </div>
+
+          <div class="nav-buttons">
+             <button class="btn btn-prev" onclick="prevPage()">返回</button>
+             <button class="btn btn-submit" onclick="submitSelection()">启动生成</button>
+             <button class="btn btn-next" onclick="randomSelection()" style="background:var(--gray);">随机</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-info">
+        <div class="info-grid" id="info-grid"></div>
+      </div>
+    </div>
+
+    <script>
+      // === 1. 数据结构：严格 13选项 + 1未定义 (渲染时+1自定义 = 15) ===
+      const pagesConfig = [
+        { key: "style", title: "1. 文风/背景", desc: "决定世界观与叙事基调", 
+          options: [
+            {i:"📖", l:"原著文风"}, {i:"🍬", l:"轻松诙谐"}, {i:"🌑", l:"严肃暗黑"}, {i:"🌸", l:"纯爱/轻小说"},
+            {i:"⚔️", l:"史诗/正剧"}, {i:"🔞", l:"官能/高H"}, {i:"👻", l:"悬疑/惊悚"}, {i:"🧠", l:"心理/意识流"},
+            {i:"📜", l:"古代/武侠"}, {i:"🤖", l:"科幻/赛博"}, {i:"🏚️", l:"废土/末世"}, {i:"🧛", l:"吸血鬼/哥特"},
+            {i:"👾", l:"克苏鲁"}, {i:"🚫", l:"无特殊/混合"} // 13+1
+          ]
+        },
+        { key: "youStatus", title: "2. {{优}} 的开场状态", desc: "{{优}} 正在做什么",
+          options: [
+            {i:"🌟", l:"主角登场"}, {i:"🛌", l:"休息/睡眠"}, {i:"🚿", l:"沐浴/清洁"}, {i:"🍷", l:"微醺/醉酒"},
+            {i:"🔮", l:"远程通讯"}, {i:"💄", l:"梳妆打扮"}, {i:"🧹", l:"日常劳作"}, {i:"🧘‍♀️", l:"锻炼/修行"},
+            {i:"🔗", l:"被拘束中"}, {i:"😿", l:"哭泣/悲伤"}, {i:"🤕", l:"受伤/虚弱"}, {i:"🍎", l:"进食/用餐"},
+            {i:"📚", l:"阅读/学习"}, {i:"❌", l:"未出场"} // 13+1
+          ]
+        },
+        { key: "xiuStatus", title: "3. {{秀}} 的开场状态", desc: "{{秀}} 正在做什么",
+          options: [
+            {i:"💼", l:"公务/劳作"}, {i:"🐎", l:"赶路/途中"}, {i:"🎮", l:"娱乐/消遣"}, {i:"🍻", l:"应酬/宴会"},
+            {i:"🏋️", l:"修炼/锻炼"}, {i:"🍳", l:"烹饪/准备"}, {i:"💤", l:"熟睡/无意识"}, {i:"🚿", l:"沐浴/更衣"},
+            {i:"👀", l:"暗中观察"}, {i:"🚪", l:"门外偷听"}, {i:"🩺", l:"接受治疗"}, {i:"🗺️", l:"迷路/受困"},
+            {i:"🛍️", l:"外出采购"}, {i:"❌", l:"未出场"}
+          ]
+        },
+        { key: "npcStatus", title: "4. {{NPC}} 的开场状态", desc: "{{NPC}} 登场动作",
+          options: [
+            {i:"🔔", l:"拜访/敲门"}, {i:"🪑", l:"端坐上位"}, {i:"🚪", l:"潜伏暗处"}, {i:"👁️", l:"监视器观察"},
+            {i:"📄", l:"话题被提及"}, {i:"🛏️", l:"榻上等待"}, {i:"🔮", l:"远程威胁"}, {i:"🐎", l:"异地/视角"},
+            {i:"😷", l:"遮掩面容"}, {i:"🩹", l:"准备刑具"}, {i:"📦", l:"伪装送货"}, {i:"📸", l:"手持录像"},
+            {i:"👥", l:"带人围堵"}, {i:"❌", l:"未出场"}
+          ]
+        },
+        { key: "location", title: "5. 初始场景", desc: "故事发生的地点",
+          options: [
+            {i:"🏠", l:"{{优}}的居所"}, {i:"🛋️", l:"公共厅堂"}, {i:"🛁", l:"浴室/净身"}, {i:"🏫", l:"学习/修炼"},
+            {i:"🏢", l:"公务/办公"}, {i:"🏥", l:"医疗/治愈"}, {i:"🚇", l:"交通工具"}, {i:"🌳", l:"野外/自然"},
+            {i:"🏩", l:"旅店/客栈"}, {i:"🏰", l:"地下/密室"}, {i:"🏖️", l:"水边/度假"}, {i:"⛪", l:"祭祀/神圣"},
+            {i:"🕋", l:"箱柜/狭间"}, {i:"🌌", l:"未知"}
+          ]
+        },
+        { key: "pov", title: "6. 描写视角", desc: "决定叙事的第一视角或镜头",
+          options: [
+            {i:"👩", l:"第一人称:{{优}}"}, {i:"👨", l:"第一人称:{{秀}}"}, {i:"👤", l:"第一人称:{{NPC}}"}, {i:"👁️", l:"第三人称"},
+            {i:"🎭", l:"群像(多视)"}, {i:"🎮", l:"第二人称"}, {i:"📹", l:"监控/镜头"}, {i:"📖", l:"旁白(客观)"},
+            {i:"🧸", l:"物品/环境"}, {i:"🧠", l:"心理独白"}, {i:"👥", l:"路人/群众"}, {i:"👻", l:"灵魂/幽灵"},
+            {i:"📜", l:"日记/记录"}, {i:"☁️", l:"上帝视角"}
+          ]
+        },
+        { key: "trade", title: "7. 协议/共识/交易", desc: "基于利益交换的剧情展开",
+          options: [
+            {i:"💸", l:"肉偿抵债"}, {i:"📈", l:"地位/晋升"}, {i:"🛡️", l:"寻求庇护"}, {i:"💰", l:"金钱交易"},
+            {i:"🤐", l:"秘密把柄"}, {i:"🤝", l:"默许共享"}, {i:"🏠", l:"住所借用"}, {i:"💊", l:"治疗/修复"},
+            {i:"🎯", l:"试炼奖励"}, {i:"🙏", l:"赎罪/求饶"}, {i:"🎁", l:"礼物/祭品"}, {i:"🎫", l:"入场/通行"},
+            {i:"🔑", l:"情报交换"}, {i:"🚫", l:"无机制"}
+          ]
+        },
+        { key: "command", title: "8. 契约/强制指令", desc: "基于主从/胁迫的剧情展开",
+          options: [
+            {i:"📜", l:"主仆契约"}, {i:"🐕", l:"宠物/家畜"}, {i:"🙇", l:"绝对服从"}, {i:"🖐️", l:"身体转让"},
+            {i:"🙈", l:"五感剥夺"}, {i:"🫣", l:"羞耻露出"}, {i:"🤰", l:"繁殖/播种"}, {i:"🤐", l:"禁言/口枷"},
+            {i:"⛓️", l:"刑罚/拷问"}, {i:"🪑", l:"器物/家具"}, {i:"🚻", l:"公用/共享"}, {i:"💉", l:"药物/改造"},
+            {i:"⏳", l:"时间/排泄"}, {i:"🚫", l:"无机制"}
+          ]
+        },
+        { key: "hypno", title: "9. 催眠/精神控制", desc: "基于认知修改的剧情展开",
+          options: [
+             {i:"🧠", l:"常识置换"}, {i:"⏳", l:"时间停止"}, {i:"👻", l:"认知阻碍"}, {i:"🎭", l:"人格覆写"},
+             {i:"💓", l:"快感百倍"}, {i:"😳", l:"羞耻消除"}, {i:"🧵", l:"提线木偶"}, {i:"🎞️", l:"记忆操作"},
+             {i:"🔔", l:"关键词触发"}, {i:"🍄", l:"幻觉/错乱"}, {i:"💤", l:"睡眠/恍惚"}, {i:"👥", l:"认知混淆"},
+             {i:"🔄", l:"身心互换"}, {i:"🚫", l:"无机制"}
+          ]
+        },
+        { key: "clothing", title: "10. {{优}} 的衣着", desc: "视觉外观设定",
+          options: [
+            {i:"👚", l:"便服/私服"}, {i:"👙", l:"暴露/性感"}, {i:"👗", l:"庄重/礼服"}, {i:"👔", l:"制服/工作"},
+            {i:"🧸", l:"真空/无内衣"}, {i:"🐈", l:"日常装束"}, {i:"⛓️", l:"佩戴拘束"}, {i:"🩹", l:"破损/战损"},
+            {i:"🧖‍♀️", l:"浴袍/裹巾"}, {i:"👕", l:"伴侣衣物"}, {i:"🎒", l:"学徒/学生"}, {i:"🎭", l:"Cosplay"},
+            {i:"🏥", l:"病号/绷带"}, {i:"❌", l:"无衣物/全裸"}
+          ]
+        }
+      ];
+
+      const sliderDefs = {
+        dev: ["胸", "乳头", "脚", "口腔", "阴蒂", "阴道", "屁眼", "子宫", "心理"],
+        lust: ["棒欲", "口欲", "乳欲", "穴欲", "尻欲"]
+      };
+
+      // 状态变量
+      let currentPage = 0;
+      const totalPages = pagesConfig.length + 1; // 10 pages + 1 settings page
+      const selections = {};
+      pagesConfig.forEach(p => selections[p.key] = "");
+
+      // === 2. 渲染引擎 ===
+      function initRender() {
+        const container = document.getElementById("pages-container");
+        const infoGrid = document.getElementById("info-grid");
+        
+        // 生成前10页
+        pagesConfig.forEach((cfg, idx) => {
+          // 生成页面 HTML
+          const pageDiv = document.createElement("div");
+          pageDiv.className = idx === 0 ? "page active" : "page";
+          pageDiv.id = `page${idx}`;
+          
+          let gridHtml = "";
+          // 渲染 13 + 1 个预设选项
+          cfg.options.forEach(opt => {
+            gridHtml += `
+              <div class="option-card" onclick="selectOption('${cfg.key}', '${opt.l}', this)">
+                <div class="icon">${opt.i}</div>
+                <div class="label">${opt.l}</div>
+              </div>
+            `;
+          });
+          // 渲染第 15 个自定义选项 (关键修复：input事件直接触发逻辑)
+          gridHtml += `
+            <div class="option-card" onclick="focusCustom(this)">
+              <div class="icon">✏️</div>
+              <div class="label">自定义</div>
+              <input type="text" class="custom-input" placeholder="..." 
+                oninput="handleCustomInput(this, '${cfg.key}', ${idx})"
+                onfocus="selectCustomCard(this)"
+              >
+            </div>
+          `;
+
+          pageDiv.innerHTML = `
+            <div class="page-title">${cfg.title}</div>
+            <div class="page-desc">${cfg.desc}</div>
+            <div class="options-grid" id="grid_${cfg.key}">${gridHtml}</div>
+            <div class="nav-buttons">
+              ${idx > 0 ? `<button class="btn btn-prev" onclick="prevPage()">返回</button>` : ''}
+              <button class="btn btn-next" id="nextBtn${idx}" onclick="nextPage()" disabled>下一步</button>
+              ${idx === 0 ? '' : ''} 
+            </div>
+          `;
+          container.appendChild(pageDiv);
+
+          // 生成底部信息栏
+          const infoItem = document.createElement("div");
+          infoItem.className = "info-item";
+          infoItem.innerHTML = `<span class="info-label">${idx+1}.${cfg.title.split(' ')[1]||'文风'}</span><span class="info-value" id="info_${cfg.key}">-</span>`;
+          infoGrid.appendChild(infoItem);
+        });
+
+        // 渲染滑块
+        renderSliderGroup("sliders-dev", sliderDefs.dev, "dev");
+        renderSliderGroup("sliders-lust", sliderDefs.lust, "lust");
+      }
+
+      function renderSliderGroup(containerId, labels, prefix) {
+        const c = document.getElementById(containerId);
+        let html = "";
+        labels.forEach((lbl, idx) => {
+          const id = `slider_${prefix}_${idx}`;
+          html += `
+            <div class="slider-row">
+              <span class="slider-label">${lbl}</span>
+              <div class="slider-container">
+                <input type="range" id="${id}" min="0" max="100" value="0" oninput="updateVal(this)">
+              </div>
+              <span class="slider-val" id="val_${id}">0%</span>
+            </div>
+          `;
+        });
+        c.innerHTML = html;
+      }
+
+      // === 3. 逻辑控制 ===
+      
+      // 普通选项点击
+      function selectOption(key, val, el) {
+        // UI清理
+        const grid = el.parentElement;
+        grid.querySelectorAll(".option-card").forEach(c => {
+          c.classList.remove("selected");
+          // 清空同组的自定义输入框
+          const input = c.querySelector('input');
+          if(input) input.value = '';
+        });
+        
+        el.classList.add("selected");
+        selections[key] = val;
+        updateInfo();
+        
+        // 激活下一步按钮
+        const pageIdx = pagesConfig.findIndex(p => p.key === key);
+        const btn = document.getElementById(`nextBtn${pageIdx}`);
+        if(btn) btn.disabled = false;
+      }
+
+      // 自定义卡片点击 (聚焦输入框)
+      function focusCustom(card) {
+        const input = card.querySelector('input');
+        if(input) input.focus();
+      }
+
+      // 输入框聚焦 (UI选中)
+      function selectCustomCard(input) {
+        const card = input.parentElement;
+        const grid = card.parentElement;
+        grid.querySelectorAll(".option-card").forEach(c => c.classList.remove("selected"));
+        card.classList.add("selected");
+      }
+
+      // 自定义输入处理 (关键逻辑)
+      function handleCustomInput(input, key, pageIdx) {
+        selections[key] = input.value;
+        updateInfo();
+        
+        const btn = document.getElementById(`nextBtn${pageIdx}`);
+        if(btn) {
+          // 如果有内容则启用按钮，否则禁用
+          btn.disabled = input.value.trim() === "";
+        }
+      }
+
+      function updateVal(input) {
+        const display = document.getElementById("val_" + input.id);
+        display.innerText = input.value + "%";
+        const intensity = input.value / 100;
+        input.style.filter = `sepia(${1-intensity}) hue-rotate(-50deg)`;
+      }
+
+      function updateInfo() {
+        Object.keys(selections).forEach(k => {
+          const el = document.getElementById("info_" + k);
+          // 简短显示
+          let val = selections[k] || "-";
+          if(val.length > 5) val = val.substring(0,4) + "..";
+          if(el) el.textContent = val;
+        });
+      }
+
+      // 翻页逻辑
+      function showPage(idx) {
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        const target = document.getElementById("page" + idx);
+        if(target) target.classList.add("active");
+        currentPage = idx;
+        const progress = (currentPage / (totalPages - 1)) * 100;
+        document.getElementById("progressBar").style.width = progress + "%";
+        window.scrollTo(0, 0);
+      }
+      function nextPage() { if(currentPage < totalPages - 1) showPage(currentPage + 1); }
+      function prevPage() { if(currentPage > 0) showPage(currentPage - 1); }
+
+      // 随机逻辑
+      function randomSelection() {
+        pagesConfig.forEach((cfg, idx) => {
+           // 随机只选前14个预设，不随机自定义
+           const rand = cfg.options[Math.floor(Math.random() * cfg.options.length)];
+           selections[cfg.key] = rand.l;
+           
+           // UI Sync
+           const grid = document.getElementById("grid_" + cfg.key);
+           if(grid) {
+             grid.querySelectorAll(".option-card").forEach(c => c.classList.remove("selected"));
+             // 简单的视觉反馈，不强求高亮特定卡片，重点是数据更新
+           }
+        });
+        updateInfo();
+        showPage(10); // 跳到数值页
+      }
+
+      // 提交逻辑
+      function submitSelection() {
+        showInfoModal(function() {
+          const s = selections;
+          
+          let devStr = "";
+          sliderDefs.dev.forEach((lbl, i) => {
+            const val = document.getElementById(`slider_dev_${i}`).value;
+            if(val > 0) devStr += `${lbl}:${val}% `;
+          });
+
+          let lustStr = "";
+          sliderDefs.lust.forEach((lbl, i) => {
+            const val = document.getElementById(`slider_lust_${i}`).value;
+            if(val > 0) lustStr += `${lbl}:${val}% `;
+          });
+
+          const corruption = document.getElementById("slider_corruption").value;
+          const cuckold = document.getElementById("slider_cuckold").value;
+          const share = document.getElementById("slider_share").value;
+
+          let mechanics = "";
+          if(s.trade && !s.trade.includes("无机制")) mechanics += `[交易: ${s.trade}] `;
+          if(s.command && !s.command.includes("无机制")) mechanics += `[强制: ${s.command}] `;
+          if(s.hypno && !s.hypno.includes("无机制")) mechanics += `[催眠: ${s.hypno}] `;
+          if(!mechanics) mechanics = "无特殊机制";
+
+          const message = `【剧情生成指令】
+1. 文风：${s.style}
+2. 视角：${s.pov}
+3. 当前协议/共识/交易/契约/指令/催眠：与 {{NPC}} 达成的 ${mechanics}
+4. 地点：${s.location}
+
+【角色状态】
+- {{优}}：${s.youStatus} (穿着: ${s.clothing})
+- {{秀}}：${s.xiuStatus}
+- {{NPC}}：${s.npcStatus}
+
+【数值设定】
+{{优}}·开发部位: ${devStr || "无"}
+{{优}}·性欲: ${lustStr || "无"}
+{{优}}·堕落: [堕落值:${corruption}%] [堕落阶段:{{plot}}]
+{{秀}}·: [绿帽值:${cuckold}%] [淫妻欲:${share}%]
+
+【执行要求】
+请以 ${s.pov} 视角展开描写。
+场景位于 ${s.location}。重点描写 {{优}} 在受到【${mechanics}】影响下，体现 ${corruption}% 堕落值带来的心理变化，以及 ${s.clothing} 的视觉细节。`;
+
+          const command = `/send ${message} | /trigger`;
+            
+          if(typeof triggerSlash === "function") {
+            triggerSlash(command);
+          } else {
+            navigator.clipboard.writeText(message);
+            alert("指令已复制到剪贴板");
+          }
+        });
+      }
+
+      function showInfoModal(cb) {
+        document.getElementById("confirmModal").classList.add("active");
+        window.confirmCallback = cb;
+      }
+      function closeInfoModal() {
+        document.getElementById("confirmModal").classList.remove("active");
+        if(window.confirmCallback) { window.confirmCallback(); window.confirmCallback = null; }
+      }
+      function toggleTheme() {
+        const body = document.body;
+        if (body.getAttribute("data-theme") === "light") {
+          body.removeAttribute("data-theme");
+        } else {
+          body.setAttribute("data-theme", "light");
+        }
+      }
+
+      // 自定义输入框回车
+      document.addEventListener('keydown', function(e) {
+         if(e.target.classList.contains('custom-input') && e.key === 'Enter') {
+           if(e.target.value.trim() !== "") nextPage();
+         }
+      });
+
+      initRender();
+      updateInfo();
+    </script>
+  </body>
+</html>
